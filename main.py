@@ -1,34 +1,40 @@
 from datetime import date
+import argparse
 
-def age_in_units(birth_year, birth_month, birth_day):
+
+def calculate_age_units(birth_date: date) -> dict:
     today = date.today()
-    birth = date(birth_year, birth_month, birth_day)
-    
-    days_old = (today - birth).days
-    if days_old < 0:
-        return "Ти ще не народився :)"
-    
-    years = days_old // 365.25
-    months = days_old // 30.44
-    weeks = days_old // 7
-    hours = days_old * 24
-    minutes = hours * 60
-    
-    print(f"Тобі виповнилося:")
-    print(f"  {years:.1f} років")
-    print(f"  {months:,.0f} місяців")
-    print(f"  {weeks:,.0f} тижнів")
-    print(f"  {days_old:,.0f} днів")
-    print(f"  {hours:,.0f} годин")
-    print(f"  {minutes:,.0f} хвилин")
+    if birth_date > today:
+        raise ValueError("Дата народження в майбутньому")
+
+    days = (today - birth_date).days
+
+    return {
+        "років": round(days / 365.25, 1),
+        "місяців": round(days / 30.437, 0),
+        "тижнів": days // 7,
+        "днів": days,
+        "годин": days * 24,
+        "хвилин": days * 24 * 60,
+    }
 
 
 if __name__ == "__main__":
-    print("Скільки тобі років у різних одиницях?\n")
+    parser = argparse.ArgumentParser(description="Калькулятор віку в різних одиницях")
+    parser.add_argument("--year", type=int, required=True, help="Рік народження")
+    parser.add_argument("--month", type=int, required=True, help="Місяць (1-12)")
+    parser.add_argument("--day", type=int, required=True, help="День")
+    args = parser.parse_args()
+
     try:
-        y = int(input("Рік народження: "))
-        m = int(input("Місяць (1-12): "))
-        d = int(input("День: "))
-        age_in_units(y, m, d)
-    except (ValueError, TypeError):
-        print("Перевір введені дані")
+        bd = date(args.year, args.month, args.day)
+        units = calculate_age_units(bd)
+
+        print(f"\nТобі виповнилося приблизно:")
+        for unit, value in units.items():
+            if unit == "років":
+                print(f"  {value:>8.1f} {unit}")
+            else:
+                print(f"  {value:>8,.0f} {unit}")
+    except ValueError as e:
+        print(f"Помилка: {e}")
